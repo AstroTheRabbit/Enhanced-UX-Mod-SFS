@@ -1,22 +1,21 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
-using ModLoader;
-using ModLoader.Helpers;
 using UITools;
 using SFS.IO;
-using System.Collections.Generic;
+using ModLoader;
 
-namespace EnhancedUI
+namespace EnhancedUX
 {
-    public class Main : Mod
+    public class Main : Mod // ! , IUpdatable
     {
         public static Main main;
-        public override string ModNameID => "enhancedui";
-        public override string DisplayName => "Enhanced UI";
+        public override string ModNameID => "enhanceduX";
+        public override string DisplayName => "Enhanced UX";
         public override string Author => "Astro The Rabbit";
         public override string MinimumGameVersionNecessary => "1.6.0";
         public override string ModVersion => "1.0";
-        public override string Description => "Various improvements to SFS's UI system(s).";
+        public override string Description => "Various PC-focused improvements to SFS's UI and other systems.";
 
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string>
         {
@@ -38,7 +37,16 @@ namespace EnhancedUI
 
         public override void Load()
         {
-            Debug.Log("Hiya!");
+            SFS.UI.Menu.textInput.Open
+            (
+                "Cancel",
+                "Confirm",
+                array => Debug.Log($"Confirmed! {array[0]}, {array[1]}, {array[2]}"),
+                SFS.Input.CloseMode.Current,
+                SFS.UI.TextInputMenu.Element("Element 0", "Default 0"),
+                SFS.UI.TextInputMenu.Element("Element 1", "Default 1"),
+                SFS.UI.TextInputMenu.Element("Element 2", "Default 2")
+            );
         }
     }
 }
