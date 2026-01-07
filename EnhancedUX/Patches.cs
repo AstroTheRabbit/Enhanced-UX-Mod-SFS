@@ -1,7 +1,13 @@
+using System;
+using System.Reflection;
+using System.Collections.Generic;
 using HarmonyLib;
 using SFS.Input;
 using SFS.UI;
 using SFS.UI.ModGUI;
+using Type = System.Type;
+using UnityEngine.UI;
+using System.Reflection.Emit;
 
 namespace EnhancedUX.Patches
 {
@@ -22,7 +28,7 @@ namespace EnhancedUX.Patches
         [HarmonyPatch(typeof(Screen_Game), nameof(Screen_Game.ProcessInput))]
         public static class Screen_Game_ProcessInput
         {
-            public static bool Prefix(Screen_Game __instance)
+            public static bool Prefix()
             {
                 return !TextInputSelected;
             }
@@ -31,14 +37,38 @@ namespace EnhancedUX.Patches
 
     public static class TextInputMenuImprovements
     {
-        [HarmonyPatch(typeof(Screen_Menu), nameof(Screen_Menu.Open))]
-        public static class Screen_Menu_Open
-        {
-            public static void Postfix(Screen_Menu __instance)
-            {
-                if (__instance is TextInputMenu menu)
+        [
+            HarmonyPatch
+            (
+                typeof(TextInputMenu),
+                nameof(TextInputMenu.Open),
+                new Type[]
                 {
-                    TextInputMenuHandler.OnOpen(menu);
+                    typeof(string),
+                    typeof(string),
+                    typeof(Action<string[]>),
+                    typeof(CloseMode),
+                    typeof(CloseMode),
+                    typeof(TextInputElement[]),
+                }
+            )
+        ]
+        public static class TextInputMenu_Open
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                MethodInfo info = AccessTools.Method(typeof(Screen_Menu), nameof(Screen_Menu.Open));
+
+                foreach (CodeInstruction code in instructions)
+                {
+                    yield return code;
+                    if (code.Calls(info))
+                    {
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return CodeInstruction.Call(typeof(TextInputMenuHandler), nameof(TextInputMenuHandler.OnOpen));
+                        yield return new CodeInstruction(OpCodes.Ret);
+                        break;
+                    }
                 }
             }
         }

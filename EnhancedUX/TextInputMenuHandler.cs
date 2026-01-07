@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
@@ -6,34 +7,46 @@ using SFS.UI;
 
 namespace EnhancedUX
 {
-    public class TextInputMenuHandler : MonoBehaviour, IUpdateSelectedHandler, ISubmitHandler
+    public class TextInputMenuHandler : MonoBehaviour, IUpdateSelectedHandler
     {
-        private static TMP_InputField[] inputs;
-        private static TextInputMenu menu;
         private static int index;
+        private static TextInputMenu menu;
+        private static TMP_InputField[] inputs;
 
         public static void OnOpen(TextInputMenu inputMenu)
         {
             index = 0;
-            inputs = (menu = inputMenu)
+            menu = inputMenu;
+            inputs = menu
                 .FieldRef<TextInputElement[]>("elements")
                 .Select(e => e.textBox.TMProTextBox)
                 .ToArray();
             foreach (TMP_InputField input in inputs)
             {
-                TextInputMenuHandler handler = input.GetOrAddComponent<TextInputMenuHandler>();
+                input.onSubmit.AddListener(OnSubmit);
+                input.GetOrAddComponent<TextInputMenuHandler>();
             }
+            menu.StartCoroutine(SelectFirstNextFrame());
+        }
+
+        private static IEnumerator SelectFirstNextFrame()
+        {
+            yield return new WaitForEndOfFrame();
             UpdateSelected();
         }
 
         public static void UpdateSelected()
         {
-            EventSystem.current.SetSelectedGameObject(inputs[index].gameObject);
+            inputs[index].Select();
+        }
+
+        private static void OnSubmit(string _)
+        {
+            menu.Confirm();
         }
 
         public void OnUpdateSelected(BaseEventData eventData)
         {
-            Debug.Log($"OnUpdateSelected from {index}");
             if (Input.GetKeyDown(KeyCode.Tab))
             {
                 if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
@@ -47,13 +60,6 @@ namespace EnhancedUX
                 UpdateSelected();
                 eventData.Use();
             }
-        }
-
-        public void OnSubmit(BaseEventData eventData)
-        {
-            Debug.Log($"OnSubmit from {index}");
-            menu.Confirm();
-            eventData.Use();
         }
     }
 }

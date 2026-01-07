@@ -35,8 +35,9 @@ namespace EnhancedUX
             main = this;
         }
 
-        public override void Load()
+        public override async void Load()
         {
+            await System.Threading.Tasks.Task.Delay(5000);
             SFS.UI.Menu.textInput.Open
             (
                 "Cancel",
