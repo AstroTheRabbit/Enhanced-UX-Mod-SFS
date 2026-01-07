@@ -11,7 +11,7 @@ using System.Reflection.Emit;
 
 namespace EnhancedUX.Patches
 {
-    public static class PreventProcessingForTextInputs
+    public static class StopProcessingForTextInputs
     {
         public static bool TextInputSelected { get; set; } = false;
 
@@ -30,7 +30,14 @@ namespace EnhancedUX.Patches
         {
             public static bool Prefix()
             {
-                return !TextInputSelected;
+                if (Settings.settings.StopProcessingForTextInputs)
+                {
+                    return !TextInputSelected;
+                }
+                else
+                {
+                    return true;
+                }
             }
         }
     }

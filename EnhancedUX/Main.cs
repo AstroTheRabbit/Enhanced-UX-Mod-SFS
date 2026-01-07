@@ -35,19 +35,9 @@ namespace EnhancedUX
             main = this;
         }
 
-        public override async void Load()
+        public override void Load()
         {
-            await System.Threading.Tasks.Task.Delay(5000);
-            SFS.UI.Menu.textInput.Open
-            (
-                "Cancel",
-                "Confirm",
-                array => Debug.Log($"Confirmed! {array[0]}, {array[1]}, {array[2]}"),
-                SFS.Input.CloseMode.Current,
-                SFS.UI.TextInputMenu.Element("Element 0", "Default 0"),
-                SFS.UI.TextInputMenu.Element("Element 1", "Default 1"),
-                SFS.UI.TextInputMenu.Element("Element 2", "Default 2")
-            );
+            Settings.Init();
         }
     }
 }

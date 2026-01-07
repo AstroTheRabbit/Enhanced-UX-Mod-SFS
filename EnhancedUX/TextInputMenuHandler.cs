@@ -21,12 +21,23 @@ namespace EnhancedUX
                 .FieldRef<TextInputElement[]>("elements")
                 .Select(e => e.textBox.TMProTextBox)
                 .ToArray();
+
             foreach (TMP_InputField input in inputs)
             {
-                input.onSubmit.AddListener(OnSubmit);
-                input.GetOrAddComponent<TextInputMenuHandler>();
+                if (Settings.settings.TextInputMenu_EnterForConfirmation)
+                {
+                    input.onSubmit.AddListener(OnSubmit);
+                }
+                if (Settings.settings.TextInputMenu_TabForNavigation)
+                {
+                    input.GetOrAddComponent<TextInputMenuHandler>();
+                }
             }
-            menu.StartCoroutine(SelectFirstNextFrame());
+            
+            if (Settings.settings.TextInputMenu_AutoSelectFirstInput)
+            {
+                menu.StartCoroutine(SelectFirstNextFrame());
+            }
         }
 
         private static IEnumerator SelectFirstNextFrame()
