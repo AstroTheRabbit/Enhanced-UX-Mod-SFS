@@ -1,13 +1,12 @@
 using System;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Collections.Generic;
 using HarmonyLib;
-using SFS.Input;
 using SFS.UI;
+using SFS.Input;
 using SFS.UI.ModGUI;
 using Type = System.Type;
-using UnityEngine.UI;
-using System.Reflection.Emit;
 
 namespace EnhancedUX.Patches
 {
@@ -37,6 +36,51 @@ namespace EnhancedUX.Patches
                 else
                 {
                     return true;
+                }
+            }
+        }
+    }
+
+    public static class MenuGeneratorImprovements
+    {
+        private static Stack<CloseMode> closeModes = new Stack<CloseMode>();
+        public static void PushCloseMode(CloseMode mode) => closeModes.Push(mode);
+        private static CloseMode PopCloseMode() => closeModes.Count > 0 ? closeModes.Pop() : CloseMode.None;
+
+        [HarmonyPatch(typeof(MenuGenerator), nameof(MenuGenerator.ShowChoices))]
+        public static class MenuGenerator_ShowChoices
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                bool found_ldc_1 = false;
+                bool found_ldc_2 = false;
+
+                foreach (CodeInstruction code in instructions)
+                {
+                    if (!found_ldc_1)
+                    {
+                        if (code.opcode == OpCodes.Ldc_I4_0)
+                        {
+                            found_ldc_1 = true;
+                        }
+                        yield return code;
+                    }
+                    else if (!found_ldc_2)
+                    {
+                        if (code.opcode == OpCodes.Ldc_I4_0)
+                        {
+                            found_ldc_2 = true;
+                            yield return CodeInstruction.Call(typeof(MenuGeneratorImprovements), nameof(PopCloseMode));
+                        }
+                        else
+                        {
+                            yield return code;
+                        }
+                    }
+                    else
+                    {
+                        yield return code;
+                    }
                 }
             }
         }
@@ -77,6 +121,62 @@ namespace EnhancedUX.Patches
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    public static class AskOverwriteMenuImprovements
+    {
+        [HarmonyPatch(typeof(MenuGenerator), nameof(MenuGenerator.AskOverwrite))]
+        public static class MenuGenerator_AskOverwrite
+        {
+            public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+            {
+                LocalBuilder local = generator.DeclareLocal(typeof(ButtonBuilder[]));
+                MethodInfo info = AccessTools.Method(typeof(MenuGenerator), nameof(MenuGenerator.ShowChoices));
+
+                bool found_newarr = false;
+                bool found_call = false;
+
+                foreach (CodeInstruction code in instructions)
+                {
+                    if (!found_newarr)
+                    {
+                        yield return code;
+                        if (code.opcode == OpCodes.Newarr)
+                        {
+                            found_newarr = true;
+                            // * Store reference to newly-created `ButtonBuilder[]`.
+                            yield return new CodeInstruction(OpCodes.Dup);
+                            yield return new CodeInstruction(OpCodes.Stloc, local);
+                        }
+                    }
+                    else if (!found_call)
+                    {
+                        if (code.Calls(info))
+                        {
+                            found_call = true;
+                            // * Pass the elements of `ButtonBuilder[]` through to `AskOverwriteMenuHandler` via `OnOpen`.
+                            yield return new CodeInstruction(OpCodes.Ldloc, local);
+                            yield return CodeInstruction.Call(typeof(MenuGenerator_AskOverwrite), nameof(OnOpen));
+                        }
+                        yield return code;
+                    }
+                    else
+                    {
+                        yield return code;
+                    }
+                }
+            }
+
+            private static void OnOpen(ButtonBuilder[] array)
+            {
+                AskOverwriteMenuHandler.OnOpen
+                (
+                    overwriteButton: array[0],
+                    newButton: array[1],
+                    cancelButton: array[2]
+                );
             }
         }
     }

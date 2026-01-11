@@ -38,6 +38,7 @@ namespace EnhancedUX
         public override void Load()
         {
             Settings.Init();
+            KeyBindings.Init();
         }
     }
 }

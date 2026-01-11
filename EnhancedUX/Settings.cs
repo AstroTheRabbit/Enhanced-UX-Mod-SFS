@@ -10,7 +10,7 @@ namespace EnhancedUX
     public class Settings : ModSettings<Settings.Data>
     {
         public static Settings main;
-        protected override FilePath SettingsFile => new FolderPath(Main.main.ModFolder).ExtendToFile("Settings.txt");
+        protected override FilePath SettingsFile => new FolderPath(Main.main.ModFolder).ExtendToFile("settings.txt");
 
         public static void Init()
         {
@@ -35,7 +35,7 @@ namespace EnhancedUX
         {
             Vector2Int size = ConfigurationMenu.ContentSize;
             Box box = Builder.CreateBox(parent, size.x, size.y);
-            box.CreateLayoutGroup(LayoutType.Vertical, TextAnchor.UpperLeft, padding: new RectOffset(15, 15, 15, 15));
+            box.CreateLayoutGroup(LayoutType.Vertical, TextAnchor.UpperLeft, 10, new RectOffset(15, 15, 15, 15));
             int width = size.x - 30;
 
             void CreateToggle(string name, Func<bool> getter, Action<bool> setter)
@@ -44,13 +44,13 @@ namespace EnhancedUX
                 (
                     box,
                     width,
-                    50,
+                    40,
                     getter,
                     () => setter(!getter()),
                     labelText: name
                 );
                 toggle.label.AutoFontResize = false;
-                toggle.label.FontSize = 30;
+                toggle.label.FontSize = 25;
             }
 
             Builder.CreateLabel
@@ -67,6 +67,7 @@ namespace EnhancedUX
                 v => settings.StopProcessingForTextInputs = v
             );
             
+            Builder.CreateSeparator(box, width);
             Builder.CreateLabel
             (
                 box,
@@ -93,6 +94,34 @@ namespace EnhancedUX
                 v => settings.TextInputMenu_EnterForConfirmation = v
             );
 
+            Builder.CreateSeparator(box, width);
+            Builder.CreateLabel
+            (
+                box,
+                width,
+                50,
+                text: "Ask Overwrite Menu"
+            );
+            Builder.CreateLabel
+            (
+                box,
+                width,
+                50,
+                text: "Keybinding options can be found near the\nbottom of the game's vanilla settings menu."
+            );
+            CreateToggle
+            (
+                "Keybinds For Confirmation",
+                () => settings.AskOverwriteMenu_KeybindsForConfirmation,
+                v => settings.AskOverwriteMenu_KeybindsForConfirmation = v
+            );
+            CreateToggle
+            (
+                "'Escape' Key For Cancel",
+                () => settings.AskOverwriteMenu_EscapeForCancel,
+                v => settings.AskOverwriteMenu_EscapeForCancel = v
+            );
+
             return box.gameObject;
         }
 
@@ -108,6 +137,9 @@ namespace EnhancedUX
             public bool TextInputMenu_AutoSelectFirstInput { get; set; } = true;
             public bool TextInputMenu_TabForNavigation { get; set; } = true;
             public bool TextInputMenu_EnterForConfirmation { get; set; } = true;
+
+            public bool AskOverwriteMenu_KeybindsForConfirmation { get; set; } = false;
+            public bool AskOverwriteMenu_EscapeForCancel { get; set; } = true;
         }
     }
 }
