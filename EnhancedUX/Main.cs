@@ -1,21 +1,20 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using UnityEngine;
 using UITools;
 using SFS.IO;
 using ModLoader;
 
 namespace EnhancedUX
 {
-    public class Main : Mod // ! , IUpdatable
+    public class Main : Mod, IUpdatable
     {
         public static Main main;
-        public override string ModNameID => "enhanceduX";
+        public override string ModNameID => "enhancedux";
         public override string DisplayName => "Enhanced UX";
         public override string Author => "Astro The Rabbit";
         public override string MinimumGameVersionNecessary => "1.6.0";
         public override string ModVersion => "1.0";
-        public override string Description => "Various PC-focused improvements to SFS's UI and other systems.";
+        public override string Description => "A PC-focused quality of life mod.";
 
         public override Dictionary<string, string> Dependencies { get; } = new Dictionary<string, string>
         {
@@ -24,8 +23,8 @@ namespace EnhancedUX
         public Dictionary<string, FilePath> UpdatableFiles => new Dictionary<string, FilePath>()
         {
             {
-                "https://github.com/AstroTheRabbit/Enhanced-UI-Mod-SFS/releases/latest/download/EnhancedUI.dll",
-                new FolderPath(ModFolder).ExtendToFile("EnhancedUI.dll")
+                "https://github.com/AstroTheRabbit/Enhanced-UX-Mod-SFS/releases/latest/download/EnhancedUX.dll",
+                new FolderPath(ModFolder).ExtendToFile("EnhancedUX.dll")
             }
         };
 
